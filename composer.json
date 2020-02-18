@@ -1,0 +1,19 @@
+{
+    "name": "joblix/common",
+    "description": "Common code for Joblix projects",
+    "type": "library",
+    "require": {
+        "lcobucci/jwt": "^3.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0"
+    },
+    "license": "UNLICENSED",
+    "authors": [
+        {
+            "name": "Ed Linklater",
+            "email": "ed@edgar.industries"
+        }
+    ],
+    "minimum-stability": "stable"
+}
