@@ -113,30 +113,32 @@ class AuthManager
     }
 
     /**
-     * @param string $tokenString
-     * @return Token
+     * @return Token|null
      */
-    public function authenticate(string $tokenString = null)
+    public function authenticate()
     {
-        if (!$tokenString && !empty($_GET['authmanager_token'])) {
-            $tokenString = $_GET['authmanager_token'];
+        // token found in URL, log in
+        if (!empty($_GET['authmanager_token'])) {
+            $token = $this->parseToken($_GET['authmanager_token']);
+
+            if ($this->validateToken($token)) {
+                setcookie('authmanager_token', $_GET['authmanager_token'], $token->getClaim('exp'), '/', $this->cookie_domain);
+                return $token;
+            }
         }
 
-        if ($tokenString) {
-            $token = $this->parseToken($tokenString);
-            setcookie('authmanager_token', $tokenString, $token->getClaim('exp'), '/', $this->cookie_domain);
-        } elseif (!empty($_COOKIE['authmanager_token'])) {
+        // cookie found, we're already logged in
+        if (!empty($_COOKIE['authmanager_token'])) {
             $token = $this->parseToken($_COOKIE['authmanager_token']);
-        } else {
-            $this->redirectToLogin($this->getCurrentUrl());
+
+            if ($this->validateToken($token)) {
+                return $token;
+            }
         }
 
-        if (!$this->validateToken($token)) {
-            setcookie('authmanager_token', '', time() - 3600);
-            $this->redirectToLogin($this->getCurrentUrl());
-        }
-
-        return $token;
+        // login required
+        setcookie('authmanager_token', '', time() - 3600 * 24, '/', $this->cookie_domain);
+        $this->redirectToLogin($this->getCurrentUrl());
     }
 
     /**
@@ -164,16 +166,29 @@ class AuthManager
      */
     public function isLoggedIn()
     {
-        if (empty($_COOKIE['token'])) {
+        if (empty($_COOKIE['authmanager_token'])) {
             return false;
         }
 
-        $token = $this->parseToken($_COOKIE['token']);
+        $token = $this->parseToken($_COOKIE['authmanager_token']);
         if (!$this->validateToken($token)) {
             return false;
         }
 
         return true;
+    }
+
+    public function logout($backUrl = null)
+    {
+        setcookie('authmanager_token', '', time() - 3600 * 24, '/', $this->cookie_domain);
+
+        if (!$backUrl) {
+            $backUrl = $this->getCurrentUrl();
+        }
+
+        $url = str_replace('/login', '/logout', $this->url);
+        header('Location: ' . $url . '?to=' . urlencode($backUrl));
+        exit;
     }
 
     /**

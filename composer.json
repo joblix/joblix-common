@@ -10,7 +10,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Joblix\\Common\\": "src/"
+            "Joblix\\Common\\": "src/",
+            "Joblix\\Common\\Tests\\": "tests/"
         }
     },
     "license": "UNLICENSED",
