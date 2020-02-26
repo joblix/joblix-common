@@ -113,9 +113,10 @@ class AuthManager
     }
 
     /**
+     * @param bool $withMagicLink
      * @return Token|null
      */
-    public function authenticate()
+    public function authenticate($withMagicLink = false)
     {
         // token found in URL, log in
         if (!empty($_GET['authmanager_token'])) {
@@ -138,7 +139,11 @@ class AuthManager
 
         // login required
         setcookie('authmanager_token', '', time() - 3600 * 24, '/', $this->cookie_domain);
-        $this->redirectToLogin($this->getCurrentUrl());
+        if ($withMagicLink) {
+            $this->redirectToMagicLink($this->getCurrentUrl());
+        } else {
+            $this->redirectToLogin($this->getCurrentUrl());
+        }
     }
 
     /**
@@ -158,7 +163,7 @@ class AuthManager
     public function hasPermission(string $permission)
     {
         $token = $this->authenticate();
-        return in_array($permission, $token->getClaim('permisions'));
+        return in_array($permission, $token->getClaim('permissions'));
     }
 
     /**
@@ -214,6 +219,17 @@ class AuthManager
         }
 
         header('Location: ' . $this->url . '?to=' . urlencode($backUrl), true, 302);
+        exit;
+    }
+
+    /**
+     * @param string|null $backUrl
+     * @return void
+     */
+    public function redirectToMagicLink(string $backUrl = null)
+    {
+        $url = str_replace('/login', '/magic', $this->url);
+        header('Location: ' . $url . '?to=' . urlencode($backUrl), true, 302);
         exit;
     }
 
