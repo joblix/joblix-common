@@ -5,6 +5,7 @@ namespace Joblix\Common;
 require_once 'vendor/autoload.php';
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use Illuminate\Encryption\Encrypter;
 use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
@@ -160,16 +161,19 @@ class AuthManager
      */
     public function createUser(array $details, string $to = null)
     {
-        $encrypter = new Encrypter(hash('sha512', $this->private_key));
+        $encKey = substr($this->private_key, 0, 16);
+        $encrypter = new Encrypter($encKey);
         $encDetails = $encrypter->encrypt(array_merge($details, ['to' => $to]), true);
         $to = !is_null($to) ? $to : $this->getCurrentUrl();
 
-        $client = new Client(['base_uri' => $this->url, 'timeout' => 5]);
-        $res = $client->put('create_magic', ['body' => $encDetails]);
-
-        if ($res->getStatusCode() === 200) {
-            return (string) $res->getBody();
+        try {
+            $client = new Client(['base_uri' => $this->url, 'timeout' => 5]);
+            $res = $client->post('magic/create', ['body' => $encDetails]);
+        } catch (ClientException $e) {
+            return false;
         }
+
+        return (string) $res->getBody();
     }
 
     /**
