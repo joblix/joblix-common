@@ -160,7 +160,7 @@ class AuthManager
      */
     public function createUser(array $details, string $to = null)
     {
-        $encrypter = new Encrypter($this->private_key);
+        $encrypter = new Encrypter(hash('sha512', $this->private_key));
         $encDetails = $encrypter->encrypt(array_merge($details, ['to' => $to]), true);
         $to = !is_null($to) ? $to : $this->getCurrentUrl();
 
