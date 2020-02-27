@@ -2,6 +2,10 @@
 
 namespace Joblix\Common;
 
+require_once 'vendor/autoload.php';
+
+use GuzzleHttp\Client;
+use Illuminate\Encryption\Encrypter;
 use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
 use Lcobucci\JWT\Token;
@@ -147,6 +151,28 @@ class AuthManager
     }
 
     /**
+     * @param array $details Array containing user details, e.g.
+     *  - email
+     *  - first_name
+     *  - last_name
+     * @param string $to
+     * @return string User ID of newly created user
+     */
+    public function createUser(array $details, string $to = null)
+    {
+        $encrypter = new Encrypter($this->private_key);
+        $encDetails = $encrypter->encrypt(array_merge($details, ['to' => $to]), true);
+        $to = !is_null($to) ? $to : $this->getCurrentUrl();
+
+        $client = new Client(['base_uri' => $this->url, 'timeout' => 5]);
+        $res = $client->put('create_magic', ['body' => $encDetails]);
+
+        if ($res->getStatusCode() === 200) {
+            return (string) $res->getBody();
+        }
+    }
+
+    /**
      * @param string $role
      * @return bool
      */
@@ -191,7 +217,7 @@ class AuthManager
             $backUrl = $this->getCurrentUrl();
         }
 
-        $url = str_replace('/login', '/logout', $this->url);
+        $url = $this->url . '/logout';
         header('Location: ' . $url . '?to=' . urlencode($backUrl));
         exit;
     }
@@ -211,6 +237,8 @@ class AuthManager
      */
     public function redirectToLogin(string $backUrl = null)
     {
+        $url = $this->url . '/login';
+
         $query = parse_url($backUrl, PHP_URL_QUERY);
         if ($query) {
             $backUrl .= '&authmanager_token=JWT_TOKEN';
@@ -218,7 +246,7 @@ class AuthManager
             $backUrl .= '?authmanager_token=JWT_TOKEN';
         }
 
-        header('Location: ' . $this->url . '?to=' . urlencode($backUrl), true, 302);
+        header('Location: ' . $url . '?to=' . urlencode($backUrl), true, 302);
         exit;
     }
 
@@ -228,7 +256,7 @@ class AuthManager
      */
     public function redirectToMagicLink(string $backUrl = null)
     {
-        $url = str_replace('/login', '/magic', $this->url);
+        $url = $this->url . '/magic';
         header('Location: ' . $url . '?to=' . urlencode($backUrl), true, 302);
         exit;
     }
