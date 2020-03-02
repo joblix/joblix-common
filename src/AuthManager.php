@@ -2,8 +2,6 @@
 
 namespace Joblix\Common;
 
-require_once 'vendor/autoload.php';
-
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Encryption\Encrypter;
