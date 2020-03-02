@@ -20,14 +20,11 @@ class FileManager
     private $url_prefix;
 
     /**
-     * @param Filesystem|null $filesystem
-     * @param string|null $url_prefix
+     * @param string $local_public_dir
      */
-    public function __construct(Filesystem $filesystem = null, string $url_prefix = null)
+    public function __construct(string $local_public_dir)
     {
-        if ($filesystem) {
-            $this->filesystem = $filesystem;
-        } elseif (getenv('S3_BUCKET')) {
+        if (getenv('S3_BUCKET')) {
             $this->filesystem = new Filesystem(new AwsS3Adapter(
                 new S3Client([
                     'region' => getenv('S3_BUCKET_REGION'),
@@ -38,7 +35,7 @@ class FileManager
             ));
             $this->url_prefix = getenv('S3_BUCKET_URL' . '/assets/');
         } else {
-            $this->filesystem = new Filesystem(new Local(__DIR__.'/public/assets/'));
+            $this->filesystem = new Filesystem(new Local($local_public_dir . '/assets/'));
             $this->url_prefix = getenv('BASE_URL' . '/assets/');
         }
     }
