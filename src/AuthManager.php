@@ -37,14 +37,14 @@ class AuthManager
         }
 
         if (empty($private_key)) {
-            $private_key = getenv('JOBLIX_JWT_PRIVATE_KEY');
+            $private_key = getenv('JWT_SECRET');
         }
         if ($private_key) {
             $this->setPrivateKey($private_key);
         }
 
         if (empty($url)) {
-            $url = getenv('JOBLIX_JWT_LOGIN_URL');
+            $url = getenv('VANGUARD_URL');
         }
         if ($url) {
             $this->setUrl($url);
