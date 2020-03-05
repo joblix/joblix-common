@@ -33,10 +33,10 @@ class FileManager
                 getenv('S3_BUCKET'),
                 'assets'
             ));
-            $this->url_prefix = getenv('S3_BUCKET_URL' . '/assets/');
+            $this->url_prefix = getenv('S3_BUCKET_URL') . '/assets/';
         } else {
             $this->filesystem = new Filesystem(new Local($local_public_dir . '/assets/'));
-            $this->url_prefix = getenv('BASE_URL' . '/assets/');
+            $this->url_prefix = getenv('BASE_URL') . '/assets/';
         }
     }
 
