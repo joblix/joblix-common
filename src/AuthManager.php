@@ -162,8 +162,6 @@ class AuthManager
    */
     public function createUser(array $details, string $to = null, string $role = 'User')
     {
-//        var_dump($this->url); exit;
-
         $to = !is_null($to) ? $to : $this->getCurrentUrl();
         $encKey = substr($this->private_key, 0, 16);
         $encrypter = new Encrypter($encKey);
@@ -173,11 +171,11 @@ class AuthManager
             $client = new Client(['base_uri' => $this->url . '/', 'timeout' => 5]);
             $res = $client->post('magic/create', ['body' => $encDetails]);
         } catch (ClientException $e) {
-            var_dump($e->getMessage()); exit;
-            return false;
+            die($e->getMessage());
         }
 
-        return (string) $res->getBody();
+        $id = (string) $res->getBody();
+        return trim($id);
     }
 
     /**
