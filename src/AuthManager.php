@@ -119,8 +119,10 @@ class AuthManager
      * @param bool $withMagicLink
      * @return Token|null
      */
-    public function authenticate($withMagicLink = false)
+    public function authenticate($withMagicLink = false, $to = null)
     {
+        if (empty($to)) $to = $this->getCurrentUrl();
+
         // token found in URL, log in
         if (!empty($_GET['authmanager_token'])) {
             $token = $this->parseToken($_GET['authmanager_token']);
@@ -143,9 +145,9 @@ class AuthManager
         // login required
         setcookie('authmanager_token', '', time() - 3600 * 24, '/', $this->cookie_domain);
         if ($withMagicLink) {
-            $this->redirectToMagicLink($this->getCurrentUrl());
+            $this->redirectToMagicLink($to);
         } else {
-            $this->redirectToLogin($this->getCurrentUrl());
+            $this->redirectToLogin($to);
         }
     }
 
@@ -157,7 +159,7 @@ class AuthManager
      * @param string $to
      * @return string User ID of newly created user
      */
-    public function createUser(array $details, string $to = null)
+    public function createUser(array $details, string $to = null, $role = null)
     {
         $encKey = substr($this->private_key, 0, 16);
         $encrypter = new Encrypter($encKey);
