@@ -167,12 +167,8 @@ class AuthManager
         $encrypter = new Encrypter($encKey);
         $encDetails = $encrypter->encrypt(array_merge($details, ['to' => $to, 'role' => $role]), true);
 
-        try {
-            $client = new Client(['base_uri' => $this->url . '/', 'timeout' => 5]);
-            $res = $client->post('magic/create', ['body' => $encDetails]);
-        } catch (ClientException $e) {
-            die($e->getMessage());
-        }
+        $client = new Client(['base_uri' => $this->url . '/', 'timeout' => 5]);
+        $res = $client->post('magic/create', ['body' => $encDetails]);
 
         $id = (string) $res->getBody();
         return trim($id);
